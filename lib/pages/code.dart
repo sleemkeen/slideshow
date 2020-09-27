@@ -1,6 +1,18 @@
+import 'package:billboard/bloc/codeBloc.dart';
 import 'package:flutter/material.dart';
-class Code extends StatelessWidget {
+import 'package:bloc_pattern/bloc_pattern.dart';
+
+class Code extends StatefulWidget {
+  @override
+  _CodeState createState() => _CodeState();
+}
+
+class _CodeState extends State<Code> {
   final _formKey = GlobalKey<FormState>();
+  final CodeBloc countriesBloc =
+  BlocProvider.getBloc<CodeBloc>();
+
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
