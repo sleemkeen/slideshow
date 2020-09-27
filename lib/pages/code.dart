@@ -12,7 +12,17 @@ class _CodeState extends State<Code> {
   final CodeBloc countriesBloc =
   BlocProvider.getBloc<CodeBloc>();
 
+  @override
+  void initState() {
+    super.initState();
+    print(CodeBloc);
+  }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+  
   @override
   Widget build(BuildContext context) {
     return SafeArea(

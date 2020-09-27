@@ -2,39 +2,39 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:billboard/models/apiResponse.dart';
-import 'package:billboard/models/codeModel.dart';
+import 'package:billboard/models/fileModel.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:http/http.dart' as http;
 import 'package:billboard/utils/strings.dart';
 
-class CodeBloc extends BlocBase {
-  final codeStream = BehaviorSubject<CodeModel>();
-  CodeModel getCode;
+class FileBloc extends BlocBase {
+  final fileStream = BehaviorSubject<FileModel>();
+  FileModel getCode;
   static const headers = {
     'Content-Type': 'application/json',
     'Accept' : 'application/json',
   };
 
   //output
-  Stream<CodeModel> get outputToken =>
-      codeStream.stream;
+  Stream<FileModel> get outputToken =>
+      fileStream.stream;
 
   //input
-  Sink<CodeModel> get inputToken => codeStream.sink;
+  Sink<FileModel> get inputToken => fileStream.sink;
 
-  CodeBloc();
+  FileBloc();
 
-  Future<APIResponse<CodeModel>> getTokens() {
+  Future<APIResponse<FileModel>> getTokens() {
     return http.get(AppStrings.baseUrl + AppStrings.fetchCode).then((data) {
       if (data.statusCode == 200) {
         final responseData = json.decode(data.body);
-        getCode = CodeModel.fromJson(responseData);
+        getCode = FileModel.fromJson(responseData);
         print(getCode);
-        codeStream.add(getCode);
-        return APIResponse<CodeModel>(
+        fileStream.add(getCode);
+        return APIResponse<FileModel>(
             error: false, data: getCode);
       } else {
-        return APIResponse<CodeModel>(
+        return APIResponse<FileModel>(
             error: true, errorMessage: AppStrings.errorMessage);
       }
     }).catchError((_) => APIResponse<String>(
@@ -48,7 +48,7 @@ class CodeBloc extends BlocBase {
   //dispose will be called automatically by closing its streams
   @override
   void dispose() {
-    codeStream.close();
+    fileStream.close();
     super.dispose();
   }
 }

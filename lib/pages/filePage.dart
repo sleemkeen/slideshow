@@ -8,6 +8,13 @@ class FilePage extends StatefulWidget {
 class _FilePageState extends State<FilePage> {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Scaffold(
+      body: Container(
+        color: Colors.black,
+        child: PageView(
+          
+        ),
+      ),
+    );
   }
 }
