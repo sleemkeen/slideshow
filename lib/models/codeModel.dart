@@ -1,7 +1,7 @@
 class CodeModel {
   int id;
   String codes;
-  String tokens;
+  dynamic tokens;
 
   CodeModel(
       {this.id,

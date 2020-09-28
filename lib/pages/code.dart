@@ -1,6 +1,8 @@
 import 'package:billboard/bloc/codeBloc.dart';
+import 'package:billboard/models/codeModel.dart';
 import 'package:flutter/material.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Code extends StatefulWidget {
   @override
@@ -9,20 +11,25 @@ class Code extends StatefulWidget {
 
 class _CodeState extends State<Code> {
   final _formKey = GlobalKey<FormState>();
-  final CodeBloc countriesBloc =
-  BlocProvider.getBloc<CodeBloc>();
+  final CodeBloc _codeBloc = BlocProvider.getBloc<CodeBloc>();
 
   @override
   void initState() {
     super.initState();
-    print(CodeBloc);
+    _codeBloc.getTokens();
   }
 
   @override
   void dispose() {
     super.dispose();
   }
-  
+
+  initialCodeId() async {
+    SharedPreferences.setMockInitialValues({});
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString("applicationCodeId", _codeBloc.finalValue);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -77,17 +84,28 @@ class _CodeState extends State<Code> {
                             border: Border.all(
                                 color: Colors.green, style: BorderStyle.solid, width: 1.80),
                           ),
-                          child: DropdownButton<String>(
-                            isExpanded: true,
-                            underline: SizedBox(),
-                            hint:  Text("Select your code", style: TextStyle(fontSize: 17.0, color: Colors.white),),
-                            items: <String>['A', 'B', 'C', 'D'].map((String value) {
-                              return new DropdownMenuItem<String>(
-                                value: value,
-                                child: new Text(value),
+                          child: StreamBuilder(
+                            stream: _codeBloc.outputCode,
+                            builder: (context, AsyncSnapshot<List<CodeModel>> savedCode) {
+                              if (!savedCode.hasData)
+                                return Container();
+                              final savedItem = savedCode.data;
+                              return DropdownButton<String>(
+                                isExpanded: true,
+                                underline: SizedBox(),
+                                hint:  Text("Select your code", style: TextStyle(fontSize: 17.0, color: Colors.white),),
+                                items: savedItem.map((CodeModel value) {
+                                  return new DropdownMenuItem<String>(
+                                    value: value.id.toString(),
+                                    child: new Text(value.codes),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  print(value);
+                                  _codeBloc.finalValue = value;
+                                },
                               );
-                            }).toList(),
-                            onChanged: (_) {},
+                            },
                           ),
                         )
                       ),
@@ -101,14 +119,12 @@ class _CodeState extends State<Code> {
                         height: 65,
                         child: RaisedButton(
                           color: Colors.green,
-                          onPressed: () {
-                            // Validate returns true if the form is valid, otherwise false.
-                            if (_formKey.currentState.validate()) {
-                              // If the form is valid, display a snackbar. In the real world,
-                              // you'd often call a server or save the information in a database.
-                              Scaffold
-                                  .of(context)
-                                  .showSnackBar(SnackBar(content: Text('Processing Data')));
+                          onPressed: () async {
+                            if(_codeBloc.finalValue == "") {
+
+                            } else {
+                              await initialCodeId();
+                              Navigator.pushNamed(context, '/file');
                             }
                           },
                           child: Text('Continue', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),),

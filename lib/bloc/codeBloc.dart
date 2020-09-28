@@ -8,7 +8,9 @@ import 'package:http/http.dart' as http;
 import 'package:billboard/utils/strings.dart';
 
 class CodeBloc extends BlocBase {
-  final codeStream = BehaviorSubject<CodeModel>();
+  final codeStream = BehaviorSubject<List<CodeModel>>();
+  List codeList = <CodeModel>[];
+  String finalValue = "";
   CodeModel getCode;
   static const headers = {
     'Content-Type': 'application/json',
@@ -16,28 +18,27 @@ class CodeBloc extends BlocBase {
   };
 
   //output
-  Stream<CodeModel> get outputToken =>
+  Stream<List<CodeModel>> get outputCode =>
       codeStream.stream;
-
-  //input
-  Sink<CodeModel> get inputToken => codeStream.sink;
 
   CodeBloc();
 
-  Future<APIResponse<CodeModel>> getTokens() {
+  Future<APIResponse<List<CodeModel>>> getTokens() {
     return http.get(AppStrings.baseUrl + AppStrings.fetchCode).then((data) {
       if (data.statusCode == 200) {
         final responseData = json.decode(data.body);
-        getCode = CodeModel.fromJson(responseData);
-        print(getCode);
-        codeStream.add(getCode);
-        return APIResponse<CodeModel>(
-            error: false, data: getCode);
+        var items = responseData['data'];
+        for(var item in items) {
+          codeList.add(CodeModel.fromJson(item));
+        }
+        codeStream.sink.add(codeList);
+        return APIResponse<List<CodeModel>>(
+            error: false, data: codeList);
       } else {
-        return APIResponse<CodeModel>(
+        return APIResponse<List<CodeModel>>(
             error: true, errorMessage: AppStrings.errorMessage);
       }
-    }).catchError((_) => APIResponse<String>(
+    }).catchError((_) => APIResponse<List<CodeModel>>(
         error: true, errorMessage: AppStrings.errorMessage));
   }
 
