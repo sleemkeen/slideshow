@@ -8,36 +8,39 @@ import 'package:http/http.dart' as http;
 import 'package:billboard/utils/strings.dart';
 
 class FileBloc extends BlocBase {
-  final fileStream = BehaviorSubject<FileModel>();
-  FileModel getCode;
+  final fileStream = BehaviorSubject<List<FileModel>>();
+  List fileList = <FileModel>[];
+  String finalValue = "";
+  FileModel getFile;
+
+
   static const headers = {
     'Content-Type': 'application/json',
     'Accept' : 'application/json',
   };
 
   //output
-  Stream<FileModel> get outputToken =>
+  Stream<List<FileModel>> get outputFile =>
       fileStream.stream;
-
-  //input
-  Sink<FileModel> get inputToken => fileStream.sink;
 
   FileBloc();
 
-  Future<APIResponse<FileModel>> getTokens() {
-    return http.get(AppStrings.baseUrl + AppStrings.fetchCode).then((data) {
+  Future<APIResponse<List<FileModel>>> getTokens() {
+    return http.get(AppStrings.baseUrl + AppStrings.fetchFile + "1").then((data) {
       if (data.statusCode == 200) {
         final responseData = json.decode(data.body);
-        getCode = FileModel.fromJson(responseData);
-        print(getCode);
-        fileStream.add(getCode);
-        return APIResponse<FileModel>(
-            error: false, data: getCode);
+        var items = responseData['data'];
+        for(var item in items) {
+          fileList.add(FileModel.fromJson(item));
+        }
+        fileStream.sink.add(fileList);
+        return APIResponse<List<FileModel>>(
+            error: false, data: fileList);
       } else {
-        return APIResponse<FileModel>(
+        return APIResponse<List<FileModel>>(
             error: true, errorMessage: AppStrings.errorMessage);
       }
-    }).catchError((_) => APIResponse<String>(
+    }).catchError((_) => APIResponse<List<FileModel>>(
         error: true, errorMessage: AppStrings.errorMessage));
   }
 

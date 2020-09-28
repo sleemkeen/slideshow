@@ -6,6 +6,7 @@ class AppStrings {
   static const String baseUrl = '$domain/';
   static const String fetchCode = "code";
   static const String errorMessage = "whoops !!! something went wrong";
+  static const String fetchFile="file";
 
 
 }
