@@ -12,6 +12,7 @@ class Code extends StatefulWidget {
 class _CodeState extends State<Code> {
   final _formKey = GlobalKey<FormState>();
   final CodeBloc _codeBloc = BlocProvider.getBloc<CodeBloc>();
+  var currentSelectedValue;
 
   @override
   void initState() {
@@ -79,31 +80,39 @@ class _CodeState extends State<Code> {
                         ),
                         child: Container(
                           width: MediaQuery.of(context).size.width,
-                          padding: EdgeInsets.symmetric(horizontal: 10.0),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                color: Colors.green, style: BorderStyle.solid, width: 1.80),
-                          ),
                           child: StreamBuilder(
                             stream: _codeBloc.outputCode,
                             builder: (context, AsyncSnapshot<List<CodeModel>> savedCode) {
                               if (!savedCode.hasData)
                                 return Container();
                               final savedItem = savedCode.data;
-                              return DropdownButton<String>(
-                                isExpanded: true,
-                                underline: SizedBox(),
-                                hint:  Text("Select your code", style: TextStyle(fontSize: 17.0, color: Colors.white),),
-                                items: savedItem.map((CodeModel value) {
-                                  return new DropdownMenuItem<String>(
-                                    value: value.id.toString(),
-                                    child: new Text(value.codes),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  print(value);
-                                  _codeBloc.finalValue = value;
-                                },
+                              return Container(
+                                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: Colors.green, style: BorderStyle.solid, width: 1.80),
+                                ),
+                                child: DropdownButton<String>(
+                                  isExpanded: true,
+                                  underline: SizedBox(),
+                                  hint: Text("Select your code", style: TextStyle(fontSize: 17.0, color: Colors.white),),
+                                  value: currentSelectedValue,
+                                  style: TextStyle(color: Colors.white),
+                                  dropdownColor: Colors.black,
+                                  items: savedItem.map((CodeModel value) {
+                                    return new DropdownMenuItem<String>(
+                                      value: value.id.toString(),
+                                      child: new Text(value.codes),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    print(value);
+                                    _codeBloc.finalValue = value;
+                                    setState(() {
+                                      currentSelectedValue = value;
+                                    });
+                                  },
+                                ),
                               );
                             },
                           ),
@@ -113,7 +122,7 @@ class _CodeState extends State<Code> {
                   ),
                   Container(
                     width: MediaQuery.of(context).size.width,
-                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                     child: IntrinsicHeight(
                       child: Container(
                         height: 65,

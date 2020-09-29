@@ -6,12 +6,14 @@ import 'package:billboard/models/fileModel.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:http/http.dart' as http;
 import 'package:billboard/utils/strings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FileBloc extends BlocBase {
   final fileStream = BehaviorSubject<List<FileModel>>();
   List fileList = <FileModel>[];
   String finalValue = "";
   FileModel getFile;
+  String codeInt;
 
 
   static const headers = {
@@ -23,10 +25,19 @@ class FileBloc extends BlocBase {
   Stream<List<FileModel>> get outputFile =>
       fileStream.stream;
 
-  FileBloc();
+  FileBloc() {
+    getAdverts();
+  }
 
-  Future<APIResponse<List<FileModel>>> getTokens() {
-    return http.get(AppStrings.baseUrl + AppStrings.fetchFile + "1").then((data) {
+  Future initialCodeId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    codeInt = await prefs.getString("applicationCodeId");
+  }
+
+  Future<APIResponse<List<FileModel>>> getAdverts() async {
+    await initialCodeId();
+    return http.get(AppStrings.baseUrl + AppStrings.fetchFile + codeInt).then((data) {
+      print(data.statusCode);
       if (data.statusCode == 200) {
         final responseData = json.decode(data.body);
         var items = responseData['data'];

@@ -2,8 +2,7 @@ class FileModel {
   int id;
   String url;
   String type;
-  String size;
-  int duration;
+  String duration;
 
   FileModel(
       {this.id,
@@ -15,8 +14,7 @@ class FileModel {
   FileModel.fromJson(Map<String, dynamic> item) {
     this.id = item['id'];
     this.url = item['url'];
-    this.size = item['size'];
+    this.type = item['type'];
     this.duration = item['duration'];
-
   }
 }
