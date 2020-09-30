@@ -11,15 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class FileBloc extends BlocBase {
   final fileStream = BehaviorSubject<List<FileModel>>();
   List fileList = <FileModel>[];
-  String finalValue = "";
-  FileModel getFile;
   String codeInt;
-
-
-  static const headers = {
-    'Content-Type': 'application/json',
-    'Accept' : 'application/json',
-  };
 
   //output
   Stream<List<FileModel>> get outputFile =>
@@ -53,10 +45,6 @@ class FileBloc extends BlocBase {
       }
     }).catchError((_) => APIResponse<List<FileModel>>(
         error: true, errorMessage: AppStrings.errorMessage));
-  }
-
-  sendToken() async {
-
   }
 
   //dispose will be called automatically by closing its streams

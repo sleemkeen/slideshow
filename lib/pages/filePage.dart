@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'package:better_player/better_player.dart';
 import 'package:billboard/bloc/fileBloc.dart';
-import 'package:billboard/components/videoBox/video.controller.dart';
-import 'package:billboard/components/videoBox/video_box.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:transparent_image/transparent_image.dart';
-import 'package:video_player/video_player.dart';
+import 'package:web_browser/web_browser.dart';
 
 import '../models/fileModel.dart';
 
@@ -20,8 +19,6 @@ class _FilePageState extends State<FilePage> {
   final PageController _controller = PageController();
   int nextPage = 0;
   int durations;
-  Timer _timer;
-  bool checkTimer = false;
 
   @override
   void initState() {
@@ -30,28 +27,41 @@ class _FilePageState extends State<FilePage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
-    _timer.cancel();
     _controller.dispose();
   }
 
   void _animateSlider(int duration) {
-    Future.delayed(Duration(seconds: durations)).then((_) {
+    Future.delayed(Duration(seconds: duration)).then((_) {
       nextPage = _controller.page.round() + 1;
       for(var i = 0; i < _fileBloc.fileList.length; i++) {
         if(i == nextPage) {
-          durations = int.parse(_fileBloc.fileList[i].duration);
+          if(_fileBloc.fileList[i].type.toString().toLowerCase() == "video") {
+            if(int.parse(_fileBloc.fileList[i].video_duration.toString().split(".").first) < int.parse(_fileBloc.fileList[i].duration)) {
+              var videoDuration = int.parse(_fileBloc.fileList[i].video_duration.toString().split(".").first);
+              var paidDuration = int.parse(_fileBloc.fileList[i].duration);
+              if(videoDuration < paidDuration) {
+                durations = videoDuration;
+              } else {
+                durations = paidDuration;
+              }
+            }
+          } else {
+            durations = int.parse(_fileBloc.fileList[i].duration);
+          }
         }
       }
-      print(durations);
       if (nextPage == _fileBloc.fileList.length) {
         nextPage = 0;
         durations = int.parse(_fileBloc.fileList[0].duration);
+        _controller.animateToPage(nextPage,
+            duration: Duration(milliseconds: 1), curve: Curves.linear)
+            .then((_) => _animateSlider(durations));
+      } else {
+        _controller.animateToPage(nextPage,
+            duration: Duration(seconds: 1), curve: Curves.linear)
+            .then((_) => _animateSlider(durations));
       }
-      _controller.animateToPage(nextPage,
-              duration: Duration(seconds: 1), curve: Curves.linear)
-          .then((_) => _animateSlider(durations));
     });
   }
 
@@ -62,64 +72,81 @@ class _FilePageState extends State<FilePage> {
         children: <Widget>[
           Container(color: Colors.red[100], height: double.infinity),
           Container(
-              color: Colors.white,
+              color: Color(0xFF171719),
               child: StreamBuilder(
                 stream: _fileBloc.outputFile,
                 builder: (context, AsyncSnapshot<List<FileModel>> savedFile) {
                   if (!savedFile.hasData)
-                    return Container();
+                    return Container(
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height,
+                      child: SpinKitRotatingPlain(
+                        color: Colors.white,
+                        size: 40.0,
+                      ),
+                    );
                   final savedItem = savedFile.data;
-                  durations = int.parse(savedItem[0].duration);
+                  if(_fileBloc.fileList[0].type.toString().toLowerCase() == "video") {
+                    if(int.parse(_fileBloc.fileList[0].video_duration.toString().split(".").first) < int.parse(_fileBloc.fileList[0].duration)) {
+                      var videoDuration = int.parse(_fileBloc.fileList[0].video_duration.toString().split(".").first);
+                      var paidDuration = int.parse(_fileBloc.fileList[0].duration);
+                      if(videoDuration < paidDuration) {
+                        durations = videoDuration;
+                      } else {
+                        durations = paidDuration;
+                      }
+                    }
+                  } else {
+                    durations = int.parse(_fileBloc.fileList[0].duration);
+                  }
                   WidgetsBinding.instance.addPostFrameCallback((_) => _animateSlider(durations));
                   return PageView.builder(
                     itemCount: savedItem.length,
                     itemBuilder: (BuildContext context, int index) {
                       if(savedItem[index].type.toLowerCase() == "image") {
                         return Container(
-                          color: Color(0xFF171719),
                           child: FadeInImage.memoryNetwork(placeholder: kTransparentImage,
                               image: savedItem[index].url, fit: BoxFit.contain,)
                         );
                       }
                       if(savedItem[index].type.toLowerCase() == "video") {
-                        print("index $index");
-//                        print(savedItem[index].url);
-//                        var existingItem = vcs.firstWhere((itemToCheck) => itemToCheck.value == savedItem[index].url, orElse: () => null);
-//                        vcs.insert(0, VideoController(source: VideoPlayerController.network(savedItem[index].url.toString()))
-//                          ..initialize());
-//                        print("vid ${vcs[0].value}");
-//                        _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-//                          if(timer.tick == 2) {
-//                            _timer.cancel();
-//                            setState(() {
-//                              checkTimer = true;
-//                            });
-//                          }
-//                        });
-                        return AspectRatio(
-                          aspectRatio: 16 / 9,
-                          child: BetterPlayerListVideoPlayer(
-                            BetterPlayerDataSource(
-                                BetterPlayerDataSourceType.NETWORK, savedItem[index].url),
-                            key: Key(savedItem.hashCode.toString()),
+                        return Container(
+                          child: AspectRatio(
+                            aspectRatio: 3 / 2,
+                            child: BetterPlayerListVideoPlayer(
+                              BetterPlayerDataSource(
+                                  BetterPlayerDataSourceType.NETWORK, savedItem[index].url),
+                              key: Key(savedItem[index].hashCode.toString()),
+                              playFraction: 0.8,
+                              configuration: BetterPlayerConfiguration(
+                                autoPlay: true,
+                                aspectRatio: 3 / 2,
+                                looping: true,
+                                controlsConfiguration: BetterPlayerControlsConfiguration(
+                                  showControlsOnInitialize: false,
+                                  showControls: false,
+                                  enableFullscreen: true,
+                                  controlsHideTime: Duration(milliseconds: 2)
+                                )
+                              ),
+                            ),
                           ),
                         );
-
                       }
                       return Container(
-                        color: Colors.orange,
-                        child: Center(
-                          child: Text(savedItem[index].id.toString()),
+                        child: WebBrowser (
+                          initialUrl: savedItem[index].url,
+                          javascript: true,
                         ),
                       );
                     },
                     controller: _controller,
-                    reverse: false,
                     physics: NeverScrollableScrollPhysics(),
                   );
                 }
               )
     ),
+          Container(color: Colors.transparent,)
         ],
       ),
     );

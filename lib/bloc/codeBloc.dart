@@ -11,11 +11,6 @@ class CodeBloc extends BlocBase {
   final codeStream = BehaviorSubject<List<CodeModel>>();
   List codeList = <CodeModel>[];
   String finalValue = "";
-  CodeModel getCode;
-  static const headers = {
-    'Content-Type': 'application/json',
-    'Accept' : 'application/json',
-  };
 
   //output
   Stream<List<CodeModel>> get outputCode =>
@@ -40,10 +35,6 @@ class CodeBloc extends BlocBase {
       }
     }).catchError((_) => APIResponse<List<CodeModel>>(
         error: true, errorMessage: AppStrings.errorMessage));
-  }
-
-  sendToken() async {
-
   }
 
   //dispose will be called automatically by closing its streams

@@ -1,7 +1,9 @@
 import 'package:billboard/bloc/codeBloc.dart';
 import 'package:billboard/models/codeModel.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Code extends StatefulWidget {
@@ -18,11 +20,6 @@ class _CodeState extends State<Code> {
   void initState() {
     super.initState();
     _codeBloc.getTokens();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   initialCodeId() async {
@@ -84,18 +81,26 @@ class _CodeState extends State<Code> {
                             stream: _codeBloc.outputCode,
                             builder: (context, AsyncSnapshot<List<CodeModel>> savedCode) {
                               if (!savedCode.hasData)
-                                return Container();
+                                return Container(
+                                  color: Color(0xFF171719),
+                                  width: MediaQuery.of(context).size.width,
+                                  height: MediaQuery.of(context).size.height,
+                                  child: SpinKitRotatingPlain(
+                                    color: Colors.white,
+                                    size: 40.0,
+                                  ),
+                                );
                               final savedItem = savedCode.data;
                               return Container(
                                 padding: EdgeInsets.symmetric(horizontal: 10.0),
                                 decoration: BoxDecoration(
                                   border: Border.all(
-                                      color: Colors.green, style: BorderStyle.solid, width: 1.80),
+                                      color: Colors.green.withOpacity(0.7), style: BorderStyle.solid, width: 1.80),
                                 ),
                                 child: DropdownButton<String>(
                                   isExpanded: true,
                                   underline: SizedBox(),
-                                  hint: Text("Select your code", style: TextStyle(fontSize: 17.0, color: Colors.white),),
+                                  hint: Text("Select your code", style: TextStyle(fontSize: 17.0, color: Colors.white, fontWeight: FontWeight.bold),),
                                   value: currentSelectedValue,
                                   style: TextStyle(color: Colors.white),
                                   dropdownColor: Colors.black,
