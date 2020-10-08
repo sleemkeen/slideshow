@@ -1,12 +1,12 @@
 import 'dart:async';
-import 'package:better_player/better_player.dart';
 import 'package:billboard/bloc/fileBloc.dart';
+import 'package:billboard/components/videComponent.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:web_browser/web_browser.dart';
-
 import '../models/fileModel.dart';
 
 class FilePage extends StatefulWidget {
@@ -16,19 +16,22 @@ class FilePage extends StatefulWidget {
 
 class _FilePageState extends State<FilePage> {
   final FileBloc _fileBloc = BlocProvider.getBloc<FileBloc>();
-  final PageController _controller = PageController();
+  static PageController _controller;
+  static Key _key(int index) => Key(index.toString());
+  int current = 0;
+  bool isOnPageTurning = false;
   int nextPage = 0;
   int durations;
 
   @override
   void initState() {
     super.initState();
+    _controller = PageController();
   }
 
   @override
   void dispose() {
     super.dispose();
-    _controller.dispose();
   }
 
   void _animateSlider(int duration) {
@@ -52,15 +55,12 @@ class _FilePageState extends State<FilePage> {
         }
       }
       if (nextPage == _fileBloc.fileList.length) {
-        nextPage = 0;
-        durations = int.parse(_fileBloc.fileList[0].duration);
-        _controller.animateToPage(nextPage,
-            duration: Duration(milliseconds: 1), curve: Curves.linear)
-            .then((_) => _animateSlider(durations));
+        _fileBloc.getAdverts().whenComplete(() {
+          Phoenix.rebirth(context);
+        });
       } else {
-        _controller.animateToPage(nextPage,
-            duration: Duration(seconds: 1), curve: Curves.linear)
-            .then((_) => _animateSlider(durations));
+        _controller.jumpToPage(nextPage);
+        _animateSlider(durations);
       }
     });
   }
@@ -81,7 +81,7 @@ class _FilePageState extends State<FilePage> {
                       width: MediaQuery.of(context).size.width,
                       height: MediaQuery.of(context).size.height,
                       child: SpinKitRotatingPlain(
-                        color: Colors.white,
+                        color: Colors.transparent,
                         size: 40.0,
                       ),
                     );
@@ -110,30 +110,13 @@ class _FilePageState extends State<FilePage> {
                         );
                       }
                       if(savedItem[index].type.toLowerCase() == "video") {
-                        return Container(
-                          child: AspectRatio(
-                            aspectRatio: 3 / 2,
-                            child: BetterPlayerListVideoPlayer(
-                              BetterPlayerDataSource(
-                                  BetterPlayerDataSourceType.NETWORK, savedItem[index].url),
-                              key: Key(savedItem[index].hashCode.toString()),
-                              playFraction: 0.8,
-                              configuration: BetterPlayerConfiguration(
-                                autoPlay: true,
-                                aspectRatio: 3 / 2,
-                                looping: true,
-                                controlsConfiguration: BetterPlayerControlsConfiguration(
-                                  showControlsOnInitialize: false,
-                                  showControls: false,
-                                  enableFullscreen: true,
-                                  controlsHideTime: Duration(milliseconds: 2)
-                                )
-                              ),
-                            ),
-                          ),
+                        return VideoKeepAlive(
+                          url: savedItem[index].url,
+                          key: _key(index),
                         );
                       }
                       return Container(
+                        color: Color(0xFF171719),
                         child: WebBrowser (
                           initialUrl: savedItem[index].url,
                           javascript: true,

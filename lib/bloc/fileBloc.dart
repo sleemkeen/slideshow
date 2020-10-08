@@ -24,6 +24,7 @@ class FileBloc extends BlocBase {
   Future initialCodeId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     codeInt = await prefs.getString("applicationCodeId");
+//    print("code id is $codeInt");
   }
 
   Future<APIResponse<List<FileModel>>> getAdverts() async {
@@ -33,6 +34,7 @@ class FileBloc extends BlocBase {
       if (data.statusCode == 200) {
         final responseData = json.decode(data.body);
         var items = responseData['data'];
+        fileList.clear();
         for(var item in items) {
           fileList.add(FileModel.fromJson(item));
         }

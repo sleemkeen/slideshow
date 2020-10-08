@@ -23,7 +23,6 @@ class _CodeState extends State<Code> {
   }
 
   initialCodeId() async {
-    SharedPreferences.setMockInitialValues({});
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString("applicationCodeId", _codeBloc.finalValue);
   }
@@ -111,7 +110,6 @@ class _CodeState extends State<Code> {
                                     );
                                   }).toList(),
                                   onChanged: (value) {
-                                    print(value);
                                     _codeBloc.finalValue = value;
                                     setState(() {
                                       currentSelectedValue = value;
