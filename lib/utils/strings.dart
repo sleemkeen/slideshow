@@ -4,6 +4,8 @@ class AppStrings {
   static const String domain = "http://billboard.alphaandjamnigeria.com/api";
   static const String baseUrl = '$domain/';
   static const String fetchCode = "code";
+  static const String fetchTag = "tag";
   static const String errorMessage = "whoops !!! something went wrong";
-  static const String fetchFile="file/";
+  static const String fetchByCode ="file/";
+  static const String fetchByTag ="filebytag/";
 }

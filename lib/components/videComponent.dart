@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoKeepAlive extends StatefulWidget {
@@ -12,20 +13,35 @@ class VideoKeepAlive extends StatefulWidget {
 
 class _VideoKeepAlive extends State<VideoKeepAlive> with AutomaticKeepAliveClientMixin {
   VideoPlayerController _controller;
+  bool isShowing = false;
+  static const key = 'customCacheKey';
+  static CacheManager instance = CacheManager(
+    Config(
+      key,
+      stalePeriod: const Duration(days: 4),
+      maxNrOfCacheObjects: 100,
+      repo: JsonCacheInfoRepository(databaseName: key),
+//      fileSystem: IOFileSystem(key),
+      fileService: HttpFileService(),
+    ),
+  );
 
   @override
   void initState() {
     super.initState();
-    print('building '+widget.key.toString());
-    _controller = VideoPlayerController.network(
-        widget.url)
-      ..initialize().then((_) {
-        _controller.setVolume(0.0);
-        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-        setState(() {
-          _controller.play();
-        });
+    getControllerForVideo();
+  }
+
+
+  Future<VideoPlayerController> getControllerForVideo() async {
+    var fileInfo = await instance.getSingleFile(widget.url);
+    _controller = VideoPlayerController.file(fileInfo)..initialize().then((_) {
+      _controller.setVolume(0.0);
+      setState(() {
+        _controller.play();
+        isShowing = true;
       });
+    });
   }
 
   @override
@@ -36,14 +52,18 @@ class _VideoKeepAlive extends State<VideoKeepAlive> with AutomaticKeepAliveClien
     print('initiating '+widget.key.toString());
     return Material(
       color: Color(0xFF171719),
-      child: Center(
-        child: _controller.value.initialized
-            ? AspectRatio(
-          aspectRatio: _controller.value.aspectRatio,
-          child: VideoPlayer(_controller),
-        )
-            : Container(),
-      ),
+      child: isShowing ? AnimatedOpacity(
+        opacity: isShowing ? 1 : 0,
+        duration: Duration(seconds: 1),
+        child: Center(
+          child: _controller.value.initialized
+              ? AspectRatio(
+            aspectRatio: _controller.value.aspectRatio,
+            child: VideoPlayer(_controller),
+          )
+              : Container(),
+        ),
+      ) : Container(color: Color(0xFF171719)),
     );
   }
 

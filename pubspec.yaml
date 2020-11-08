@@ -36,6 +36,9 @@ dependencies:
   flutter_spinkit: ^4.1.2+1
   video_player: ^0.11.0
   flutter_phoenix: ^0.1.0
+  path_provider: ^1.6.21
+  flutter_cache_manager: ^2.0.0
+  cached_network_image: ^2.3.3
 
 dev_dependencies:
   flutter_test:
